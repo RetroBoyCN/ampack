@@ -1,0 +1,83 @@
+name: Build Rust Program for Multiple Platforms
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+
+  build-macos:
+    runs-on: macos-latest  # 针对 macOS
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Ensure rustfmt is installed and setup problem matcher
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        components: rustfmt
+
+    - name: Build Rust program for macOS
+      run: |
+        rustup target add aarch64-apple-darwin
+        cargo build --release --target aarch64-apple-darwin
+
+    - name: Upload macOS artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: rust-artifact-macos
+        path: target/aarch64-apple-darwin/release/ampack
+
+  build-linux:
+    runs-on: ubuntu-latest  # 针对 Linux
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Ensure rustfmt is installed and setup problem matcher
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        components: rustfmt
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y libssl-dev
+
+    - name: Build Rust program for Linux
+      run: |
+        rustup target add x86_64-unknown-linux-gnu
+        cargo build --release --target x86_64-unknown-linux-gnu
+
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: rust-artifact-linux
+        path: target/x86_64-unknown-linux-gnu/release/ampack
+
+  build-windows:
+    runs-on: windows-latest  # 针对 Windows
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Ensure rustfmt is installed and setup problem matcher
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        components: rustfmt
+
+    - name: Install dependencies
+      run: choco install openssl
+
+    - name: Build Rust program for Windows
+      run: |
+        rustup target add x86_64-pc-windows-msvc
+        cargo build --release --target x86_64-pc-windows-msvc
+
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: rust-artifact-windows
+        path: target/x86_64-pc-windows-msvc/release/ampack.exe
+
+
