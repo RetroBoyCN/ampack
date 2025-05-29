@@ -42,18 +42,24 @@ jobs:
         components: rustfmt
 
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y libssl-dev
+      run: sudo apt-get update && sudo apt-get install -y musl-tools pkg-config
 
-    - name: Build Rust program for Linux
+    - name: Add musl target
+      run: rustup target add x86_64-unknown-linux-musl
+
+    - name: Build Rust program for Linux (static, musl)
+      env:
+        OPENSSL_STATIC: "1"
+        OPENSSL_NO_VENDOR: "0"
+        RUSTFLAGS: "-C target-feature=-crt-static"
       run: |
-        rustup target add x86_64-unknown-linux-gnu
-        cargo build --release --target x86_64-unknown-linux-gnu
+        cargo build --release --target x86_64-unknown-linux-musl
 
     - name: Upload Linux artifact
       uses: actions/upload-artifact@v4
       with:
         name: rust-artifact-linux
-        path: target/x86_64-unknown-linux-gnu/release/ampack
+        path: target/x86_64-unknown-linux-musl/release/ampack
 
   build-windows:
     runs-on: windows-latest  # 针对 Windows
